@@ -1,62 +1,36 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, useInView } from "framer-motion";
 import { ExternalLink, Github } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const projectsData = [
-  {
-    title: "E-Commerce Platform",
-    description: "A full-featured online store with cart, payments, and admin dashboard built with the MERN stack.",
-    techStack: ["React", "Node.js", "MongoDB", "Tailwind CSS"],
-    liveUrl: "#",
-    githubUrl: "#",
-  },
-  {
-    title: "Real-Time Chat App",
-    description: "WebSocket-powered messaging application with rooms, typing indicators, and file sharing.",
-    techStack: ["React", "Node.js", "MongoDB", "Socket.io"],
-    liveUrl: "#",
-    githubUrl: "#",
-  },
-  {
-    title: "Task Management Board",
-    description: "A Kanban-style project management tool with drag-and-drop, labels, and team collaboration.",
-    techStack: ["React", "Express", "MongoDB", "Tailwind CSS"],
-    liveUrl: "#",
-    githubUrl: "#",
-  },
-  {
-    title: "Blog CMS",
-    description: "Content management system with rich text editor, categories, user auth, and SEO optimization.",
-    techStack: ["React", "Node.js", "MongoDB", "Express"],
-    liveUrl: "#",
-    githubUrl: "#",
-  },
-  {
-    title: "Social Media Dashboard",
-    description: "Analytics dashboard tracking engagement across platforms with interactive charts and reports.",
-    techStack: ["React", "Node.js", "MongoDB", "Recharts"],
-    liveUrl: "#",
-    githubUrl: "#",
-  },
-  {
-    title: "Fitness Tracker API",
-    description: "RESTful API for tracking workouts, nutrition, and health goals with JWT authentication.",
-    techStack: ["Node.js", "Express", "MongoDB", "JWT"],
-    liveUrl: "#",
-    githubUrl: "#",
-  },
-];
+interface Project {
+  id: string;
+  title: string;
+  description: string;
+  tech_stack: string[];
+  live_url: string;
+  github_url: string;
+}
 
 const allTechs = ["All", "React", "Node.js", "MongoDB", "Express"];
 
 const Projects = () => {
   const [filter, setFilter] = useState("All");
+  const [projects, setProjects] = useState<Project[]>([]);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const { data } = await supabase.from("projects").select("*").order("display_order") as { data: Project[] | null };
+      if (data) setProjects(data);
+    };
+    fetchProjects();
+  }, []);
+
   const filtered = filter === "All"
-    ? projectsData
-    : projectsData.filter((p) => p.techStack.includes(filter));
+    ? projects
+    : projects.filter((p) => p.tech_stack.includes(filter));
 
   return (
     <section id="projects" className="section-padding" ref={ref}>
@@ -73,7 +47,6 @@ const Projects = () => {
           </h2>
         </motion.div>
 
-        {/* Filter buttons */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
@@ -95,18 +68,16 @@ const Projects = () => {
           ))}
         </motion.div>
 
-        {/* Project grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((project, i) => (
             <motion.div
-              key={project.title}
+              key={project.id}
               layout
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.3 + i * 0.1 }}
               className="glass-card rounded-xl overflow-hidden hover-lift group"
             >
-              {/* Project image placeholder */}
               <div className="h-44 bg-gradient-to-br from-muted to-card flex items-center justify-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors duration-500" />
                 <Code2Icon className="text-primary/30 group-hover:text-primary/50 transition-colors duration-500" />
@@ -117,27 +88,17 @@ const Projects = () => {
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{project.description}</p>
 
                 <div className="flex flex-wrap gap-2 mb-5">
-                  {project.techStack.map((tech) => (
-                    <span key={tech} className="px-2.5 py-1 text-xs rounded-md bg-primary/10 text-primary font-medium">
-                      {tech}
-                    </span>
+                  {project.tech_stack.map((tech) => (
+                    <span key={tech} className="px-2.5 py-1 text-xs rounded-md bg-primary/10 text-primary font-medium">{tech}</span>
                   ))}
                 </div>
 
                 <div className="flex gap-3">
-                  <a
-                    href={project.liveUrl}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-primary/20 transition-all duration-300"
-                  >
-                    <ExternalLink size={14} />
-                    Live Demo
+                  <a href={project.live_url} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-primary/20 transition-all duration-300">
+                    <ExternalLink size={14} /> Live Demo
                   </a>
-                  <a
-                    href={project.githubUrl}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-border text-foreground rounded-lg text-sm font-medium hover:border-primary hover:text-primary transition-all duration-300"
-                  >
-                    <Github size={14} />
-                    GitHub
+                  <a href={project.github_url} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-border text-foreground rounded-lg text-sm font-medium hover:border-primary hover:text-primary transition-all duration-300">
+                    <Github size={14} /> GitHub
                   </a>
                 </div>
               </div>
@@ -149,7 +110,6 @@ const Projects = () => {
   );
 };
 
-// Simple code icon for project cards
 const Code2Icon = ({ className }: { className?: string }) => (
   <svg className={className} width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="m18 16 4-4-4-4" /><path d="m6 8-4 4 4 4" /><path d="m14.5 4-5 16" />

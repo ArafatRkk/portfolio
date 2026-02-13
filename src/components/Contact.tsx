@@ -1,26 +1,37 @@
 import { useState, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Send, CheckCircle, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) return;
-    // Simulate submission
-    setStatus("success");
-    setTimeout(() => {
-      setStatus("idle");
-      setFormData({ name: "", email: "", subject: "", message: "" });
-    }, 3000);
+    setStatus("sending");
+    const { error } = await supabase.from("contact_messages").insert({
+      name: formData.name,
+      email: formData.email,
+      subject: formData.subject || null,
+      message: formData.message,
+    } as any);
+    if (error) {
+      setStatus("error");
+    } else {
+      setStatus("success");
+      setTimeout(() => {
+        setStatus("idle");
+        setFormData({ name: "", email: "", subject: "", message: "" });
+      }, 3000);
+    }
   };
 
   const inputClasses =
@@ -49,66 +60,28 @@ const Contact = () => {
           className="glass-card rounded-2xl p-6 sm:p-10 space-y-5"
         >
           <div className="grid sm:grid-cols-2 gap-5">
-            <input
-              type="text"
-              name="name"
-              placeholder="Your Name *"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className={inputClasses}
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Your Email *"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className={inputClasses}
-            />
+            <input type="text" name="name" placeholder="Your Name *" value={formData.name} onChange={handleChange} required className={inputClasses} />
+            <input type="email" name="email" placeholder="Your Email *" value={formData.email} onChange={handleChange} required className={inputClasses} />
           </div>
-          <input
-            type="text"
-            name="subject"
-            placeholder="Subject (optional)"
-            value={formData.subject}
-            onChange={handleChange}
-            className={inputClasses}
-          />
-          <textarea
-            name="message"
-            placeholder="Your Message *"
-            rows={5}
-            value={formData.message}
-            onChange={handleChange}
-            required
-            className={`${inputClasses} resize-none`}
-          />
+          <input type="text" name="subject" placeholder="Subject (optional)" value={formData.subject} onChange={handleChange} className={inputClasses} />
+          <textarea name="message" placeholder="Your Message *" rows={5} value={formData.message} onChange={handleChange} required className={`${inputClasses} resize-none`} />
 
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-primary text-primary-foreground rounded-lg font-semibold hover-lift hover:shadow-lg hover:shadow-primary/20 transition-all duration-300"
+            disabled={status === "sending"}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-primary text-primary-foreground rounded-lg font-semibold hover-lift hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 disabled:opacity-50"
           >
             <Send size={18} />
-            Send Message
+            {status === "sending" ? "Sending..." : "Send Message"}
           </button>
 
           {status === "success" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 text-primary text-sm"
-            >
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-primary text-sm">
               <CheckCircle size={16} /> Message sent successfully! I'll get back to you soon.
             </motion.div>
           )}
           {status === "error" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 text-destructive text-sm"
-            >
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-destructive text-sm">
               <AlertCircle size={16} /> Something went wrong. Please try again.
             </motion.div>
           )}

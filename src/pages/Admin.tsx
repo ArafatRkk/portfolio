@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { LogIn, LogOut, Plus, Trash2, Mail, X } from "lucide-react";
+import { LogIn, LogOut, Plus, Trash2, Mail, X, Upload } from "lucide-react";
 
 interface Project {
   id: string;
@@ -11,6 +11,7 @@ interface Project {
   live_url: string;
   github_url: string;
   display_order: number;
+  image_url: string | null;
 }
 
 interface ContactMessage {
@@ -31,8 +32,11 @@ const Admin = () => {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [tab, setTab] = useState<"projects" | "messages">("projects");
   const [showForm, setShowForm] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [newProject, setNewProject] = useState({
-    title: "", description: "", tech_stack: "", live_url: "#", github_url: "#",
+    title: "", description: "", tech_stack: "", live_url: "", github_url: "",
   });
 
   useEffect(() => {
@@ -71,22 +75,50 @@ const Admin = () => {
     await supabase.auth.signOut();
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    const ext = file.name.split(".").pop();
+    const fileName = `${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("project-images").upload(fileName, file);
+    if (error) return null;
+    const { data } = supabase.storage.from("project-images").getPublicUrl(fileName);
+    return data.publicUrl;
+  };
+
   const handleAddProject = async (e: React.FormEvent) => {
     e.preventDefault();
+    setUploading(true);
+
+    let imageUrl: string | null = null;
+    if (imageFile) {
+      imageUrl = await uploadImage(imageFile);
+    }
+
     const techArray = newProject.tech_stack.split(",").map((t) => t.trim()).filter(Boolean);
     const { error } = await supabase.from("projects").insert({
       title: newProject.title,
       description: newProject.description,
       tech_stack: techArray,
-      live_url: newProject.live_url,
-      github_url: newProject.github_url,
+      live_url: newProject.live_url || null,
+      github_url: newProject.github_url || null,
+      image_url: imageUrl,
       display_order: projects.length + 1,
     } as any);
     if (!error) {
       setShowForm(false);
-      setNewProject({ title: "", description: "", tech_stack: "", live_url: "#", github_url: "#" });
+      setNewProject({ title: "", description: "", tech_stack: "", live_url: "", github_url: "" });
+      setImageFile(null);
+      setImagePreview(null);
       fetchProjects();
     }
+    setUploading(false);
   };
 
   const handleDeleteProject = async (id: string) => {
@@ -158,23 +190,50 @@ const Admin = () => {
                 <textarea placeholder="Description" value={newProject.description} onChange={(e) => setNewProject({ ...newProject, description: e.target.value })} required className={`${inputClass} resize-none`} rows={3} />
                 <input placeholder="Tech Stack (comma separated)" value={newProject.tech_stack} onChange={(e) => setNewProject({ ...newProject, tech_stack: e.target.value })} required className={inputClass} />
                 <div className="grid grid-cols-2 gap-4">
-                  <input placeholder="Live URL" value={newProject.live_url} onChange={(e) => setNewProject({ ...newProject, live_url: e.target.value })} className={inputClass} />
-                  <input placeholder="GitHub URL" value={newProject.github_url} onChange={(e) => setNewProject({ ...newProject, github_url: e.target.value })} className={inputClass} />
+                  <input placeholder="Live URL (optional)" value={newProject.live_url} onChange={(e) => setNewProject({ ...newProject, live_url: e.target.value })} className={inputClass} />
+                  <input placeholder="GitHub URL (optional)" value={newProject.github_url} onChange={(e) => setNewProject({ ...newProject, github_url: e.target.value })} className={inputClass} />
                 </div>
-                <button type="submit" className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg hover:shadow-primary/20 transition-all">Save Project</button>
+
+                {/* Image Upload */}
+                <div>
+                  <label className="block text-sm text-muted-foreground mb-2">Project Image (optional)</label>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg text-sm text-muted-foreground hover:text-primary hover:border-primary transition-all cursor-pointer">
+                      <Upload size={16} /> Choose Image
+                      <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                    </label>
+                    {imagePreview && (
+                      <div className="relative">
+                        <img src={imagePreview} alt="Preview" className="h-16 w-24 object-cover rounded-lg border border-border" />
+                        <button type="button" onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5">
+                          <X size={12} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <button type="submit" disabled={uploading} className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg font-medium hover:shadow-lg hover:shadow-primary/20 transition-all disabled:opacity-50">
+                  {uploading ? "Saving..." : "Save Project"}
+                </button>
               </motion.form>
             )}
 
             <div className="space-y-3">
               {projects.map((p) => (
                 <div key={p.id} className="glass-card rounded-xl p-5 flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{p.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{p.description}</p>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {p.tech_stack.map((t) => (
-                        <span key={t} className="px-2 py-0.5 text-xs rounded bg-primary/10 text-primary">{t}</span>
-                      ))}
+                  <div className="flex gap-4">
+                    {p.image_url && (
+                      <img src={p.image_url} alt={p.title} className="h-16 w-24 object-cover rounded-lg border border-border flex-shrink-0" />
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-foreground">{p.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">{p.description}</p>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {p.tech_stack.map((t) => (
+                          <span key={t} className="px-2 py-0.5 text-xs rounded bg-primary/10 text-primary">{t}</span>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <button onClick={() => handleDeleteProject(p.id)} className="text-muted-foreground hover:text-destructive transition-colors p-2">

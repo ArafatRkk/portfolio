@@ -36,9 +36,8 @@ const Navbar = () => {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          <button onClick={() => handleClick("#hero")} className="text-xl font-heading font-bold">
+          <button onClick={() => handleClick("#hero")} className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>
             <span className="text-gradient">Arafat</span>
-            <span className="text-foreground">.dev</span>
           </button>
 
           {/* Desktop */}

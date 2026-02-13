@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Code2, Database, Globe, Server, GitBranch, Palette, Terminal, Layers } from "lucide-react";
+import arafatPhoto from "@/assets/arafat-photo.jpg";
 
 const skills = [
   { name: "JavaScript", icon: Code2 },
@@ -42,8 +43,8 @@ const About = () => {
             className="flex justify-center"
           >
             <div className="relative">
-              <div className="w-64 h-64 sm:w-80 sm:h-80 rounded-2xl glass-card overflow-hidden flex items-center justify-center">
-                <div className="text-8xl">👨‍💻</div>
+            <div className="w-64 h-64 sm:w-80 sm:h-80 rounded-2xl glass-card overflow-hidden">
+                <img src={arafatPhoto} alt="Arafat Amin" className="w-full h-full object-cover" />
               </div>
               <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 -z-10 blur-sm" />
             </div>

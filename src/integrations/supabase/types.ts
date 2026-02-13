@@ -48,6 +48,7 @@ export type Database = {
           display_order: number
           github_url: string | null
           id: string
+          image_url: string | null
           live_url: string | null
           tech_stack: string[]
           title: string
@@ -59,6 +60,7 @@ export type Database = {
           display_order?: number
           github_url?: string | null
           id?: string
+          image_url?: string | null
           live_url?: string | null
           tech_stack?: string[]
           title: string
@@ -70,6 +72,7 @@ export type Database = {
           display_order?: number
           github_url?: string | null
           id?: string
+          image_url?: string | null
           live_url?: string | null
           tech_stack?: string[]
           title?: string

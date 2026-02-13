@@ -8,8 +8,9 @@ interface Project {
   title: string;
   description: string;
   tech_stack: string[];
-  live_url: string;
-  github_url: string;
+  live_url: string | null;
+  github_url: string | null;
+  image_url: string | null;
 }
 
 const allTechs = ["All", "React", "Node.js", "MongoDB", "Express"];
@@ -31,6 +32,11 @@ const Projects = () => {
   const filtered = filter === "All"
     ? projects
     : projects.filter((p) => p.tech_stack.includes(filter));
+
+  const getLink = (url: string | null) => {
+    if (!url || url === "#") return "/404";
+    return url;
+  };
 
   return (
     <section id="projects" className="section-padding" ref={ref}>
@@ -79,8 +85,14 @@ const Projects = () => {
               className="glass-card rounded-xl overflow-hidden hover-lift group"
             >
               <div className="h-44 bg-gradient-to-br from-muted to-card flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors duration-500" />
-                <Code2Icon className="text-primary/30 group-hover:text-primary/50 transition-colors duration-500" />
+                {project.image_url ? (
+                  <img src={project.image_url} alt={project.title} className="w-full h-full object-cover" />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors duration-500" />
+                    <Code2Icon className="text-primary/30 group-hover:text-primary/50 transition-colors duration-500" />
+                  </>
+                )}
               </div>
 
               <div className="p-6">
@@ -94,10 +106,10 @@ const Projects = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  <a href={project.live_url} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-primary/20 transition-all duration-300">
+                  <a href={getLink(project.live_url)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:shadow-lg hover:shadow-primary/20 transition-all duration-300">
                     <ExternalLink size={14} /> Live Demo
                   </a>
-                  <a href={project.github_url} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-border text-foreground rounded-lg text-sm font-medium hover:border-primary hover:text-primary transition-all duration-300">
+                  <a href={getLink(project.github_url)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-border text-foreground rounded-lg text-sm font-medium hover:border-primary hover:text-primary transition-all duration-300">
                     <Github size={14} /> GitHub
                   </a>
                 </div>

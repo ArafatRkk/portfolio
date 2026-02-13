@@ -12,10 +12,10 @@ const Footer = () => {
           <a href="#" className="text-muted-foreground hover:text-primary transition-colors duration-300" aria-label="GitHub">
             <Github size={20} />
           </a>
-          <a href="#" className="text-muted-foreground hover:text-primary transition-colors duration-300" aria-label="LinkedIn">
+          <a href="https://www.linkedin.com/in/arafatrk" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors duration-300" aria-label="LinkedIn">
             <Linkedin size={20} />
           </a>
-          <a href="#" className="text-muted-foreground hover:text-primary transition-colors duration-300" aria-label="Twitter">
+          <a href="https://x.com/ArafatRkk" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors duration-300" aria-label="Twitter">
             <Twitter size={20} />
           </a>
         </div>

@@ -4,24 +4,14 @@ import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 
 const reviewsData = [
   {
-    clientName: "Sarah Johnson",
-    quote: "Arafat delivered an outstanding e-commerce platform that exceeded our expectations. His attention to detail and clean code made future maintenance a breeze.",
+    clientName: "Mortgage Broker Client",
+    quote: "Arafat built a stunning, high-converting website for our mortgage brokerage. The site is fast, professional, and our lead generation has increased significantly since launch. Exceptional work!",
     rating: 5,
   },
   {
-    clientName: "Michael Chen",
-    quote: "Working with Arafat was a fantastic experience. He built our real-time dashboard from scratch, and the performance is incredible. Highly recommended!",
+    clientName: "BBM Agency",
+    quote: "Arafat delivered a polished, modern website for our agency that perfectly captures our brand identity. His technical expertise and creative vision made the entire process seamless. Highly recommended!",
     rating: 5,
-  },
-  {
-    clientName: "Emily Rodriguez",
-    quote: "Arafat transformed our outdated website into a modern, fast application. His full-stack skills are truly impressive, and he communicates exceptionally well.",
-    rating: 5,
-  },
-  {
-    clientName: "David Kim",
-    quote: "Professional, reliable, and incredibly talented. Arafat built our API and admin panel in record time with zero bugs. Will definitely hire again.",
-    rating: 4,
   },
 ];
 
